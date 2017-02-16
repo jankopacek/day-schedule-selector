@@ -61,8 +61,7 @@
       var daysInARow = $.map(new Array(days.length), function (_, i) {
         return '<td class="time-slot" data-time="' + hhmm(d) + '" data-day="' + days[i] + '"></td>'
       }).join();
-
-      $el.append('<tr><td class="time-label">' + hmmAmPm(d) + '</td>' + daysInARow + '</tr>');
+      $el.append('<tr><td class="time-label">' + hhmm(d) + '</td>' + daysInARow + '</tr>');//hmmAmPm(d)
     });
   };
 
@@ -137,6 +136,32 @@
     });
   };
 
+   /**
+   * Serialize the selections to bitstring
+   * @public
+   * @returns {Object} An object containing the selections in one array
+   * [1,0,0,0,1,1,1,0,0,0...]
+   */ 
+  DayScheduleSelector.prototype.serialize_bit = function() {      
+      var plugin = this
+      , selections = [];
+      
+      $.each(this.options.days, function (_, v) {
+          //for every day
+          plugin.$el.find(".time-slot[data-day='" + v + "']").each(function () {
+              //for every timeslot
+              if (isSlotSelected($(this))) {
+                  selections.push(1);
+              }
+              else {
+                  selections.push(0);
+              }
+          });
+      })
+    
+    return selections;
+  }
+  
   /**
    * Serialize the selections
    * @public
@@ -180,6 +205,24 @@
     return selections;
   };
 
+/**
+   * Deserialize the schedule and render on the UI
+   * @public
+   * @param {Object} 
+   * must have same slot count!   
+   */
+  DayScheduleSelector.prototype.deserialize_bit = function (schedule) {
+    var plugin = this, i;
+    var pom;
+    $.each(this.options.days, function(dk, d) {
+      var $slots = plugin.$el.find('.time-slot[data-day="' + d + '"]');
+      pom = dk*$slots.length;
+      for (i = 0; i < $slots.length; i++) {        
+        if (schedule[pom+i] == 1) {  plugin.select($slots.eq(i)); }          
+      }      
+    });
+  };
+  
   /**
    * Deserialize the schedule and render on the UI
    * @public
